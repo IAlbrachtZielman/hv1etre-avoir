@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <title>Quiz – Être (brugklas)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f7f7f7; /* lichte achtergrond */
+      color: #222; /* contrasterende tekstkleur */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .quiz {
+      background: #ffffff;
+      padding: 24px 28px;
+      border-radius: 10px;
+      width: 100%;
+      max-width: 520px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    h1 {
+      font-size: 22px;
+      margin-top: 0;
+    }
+    .question {
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+    .options label {
+      display: block;
+      margin-bottom: 10px;
+      padding: 10px 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .options input {
+      margin-right: 8px;
+    }
+    button {
+      margin-top: 16px;
+      padding: 10px 16px;
+      font-size: 16px;
+      background-color: #2a6df4;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #1f57c7;
+    }
+    .feedback {
+      margin-top: 12px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="quiz">
+    <h1>Quiz – het werkwoord <em>être</em></h1>
+    <div id="question" class="question"></div>
+    <form id="options" class="options"></form>
+    <button id="nextBtn" onclick="nextQuestion()">Volgende</button>
+    <div id="feedback" class="feedback"></div>
+  </div>
+
+  <script>
+    // --- Vervoegingen & vertalingen (alleen uit de meegeleverde bronnen) ---
+    // Être (met overrides zoals gevraagd)
+    const etrePool = [
+      { fr: "je suis", nl: "ik ben" },
+      { fr: "tu es", nl: "jij bent" },
+      { fr: "il est", nl: "hij is" },                 // override
+      { fr: "elle est", nl: "zij is" },               // override
+      { fr: "on est", nl: "men is / wij zijn" },      // override
+      { fr: "nous sommes", nl: "wij zijn" },
+      { fr: "vous êtes", nl: "jullie zijn / u bent" },
+      { fr: "ils sont", nl: "zij zijn (m)" },         // override
+      { fr: "elles sont", nl: "zij zijn (v)" },       // override
+      { fr: "c’est", nl: "het is" },
+      { fr: "ce sont", nl: "het zijn" }
+    ];
+
+    // Avoir
+    const avoirPool = [
+      { fr: "j’ai", nl: "ik heb" },
+      { fr: "tu as", nl: "jij hebt" },
+      { fr: "il a", nl: "hij heeft" },                // override
+      { fr: "elle a", nl: "zij heeft" },              // override
+      { fr: "on a", nl: "men heeft / wij hebben" },   // override
+      { fr: "nous avons", nl: "wij hebben" },
+      { fr: "vous avez", nl: "jullie hebben / u heeft" },
+      { fr: "ils ont", nl: "zij hebben (m)" },        // override
+      { fr: "elles ont", nl: "zij hebben (v)" }       // override
+    ];
+
+    // --- Hulpfuncties ---
+    function shuffle(arr) {
+      return [...arr].sort(() => Math.random() - 0.5);
+    }
+
+    function sampleUnique(pool, n) {
+      return shuffle(pool).slice(0, Math.min(n, pool.length));
+    }
+
+    function buildOptions(correctNl, answerBank, k = 3) {
+      // answerBank: array met mogelijke NL-antwoorden (strings)
+      const uniqueAnswers = [...new Set(answerBank)].filter(a => a !== correctNl);
+      const distractors = shuffle(uniqueAnswers).slice(0, Math.max(0, k - 1));
+      const opts = shuffle([correctNl, ...distractors]);
+      // Als answerBank toevallig te klein is, garanderen we toch 3 keuzes door extra te pakken uit beide banken.
+      while (opts.length < k) {
+        const filler = shuffle([...new Set([...answerBank, ...etrePool.map(x => x.nl), ...avoirPool.map(x => x.nl)])])
+          .find(a => a !== correctNl && !opts.includes(a));
+        if (!filler) break;
+        opts.push(filler);
+      }
+      return shuffle(opts);
+    }
+
+    function makeQuizFromItems(items) {
+      const bank = items.map(x => x.nl);
+      return items.map(x => ({
+        fr: x.fr,
+        correct: x.nl,
+        options: buildOptions(x.nl, bank, 3)
+      }));
+    }
+
+    // --- Quiz state ---
+    let current = 0;
+    let quizOrder = [];
+    const initialEtreForms = new Set(["je suis", "tu es", "il est", "elle est", "on est", "nous sommes"]);
+
+    function startQuizEtreFirst() {
+      // De eerste quiz blijft hetzelfde als nu: 6 vaste vormen
+      const fixed = etrePool.filter(x => initialEtreForms.has(x.fr));
+      quizOrder = shuffle(makeQuizFromItems(fixed));
+      current = 0;
+      showNextButton(true);
+      loadQuestion();
+    }
+
+    function startQuizEtreAgain() {
+      // 6 nieuwe vragen over être; overlap met de eerste set max 3 vormen
+      let chosen = [];
+      let attempts = 0;
+      while (attempts < 200) {
+        const candidate = sampleUnique(etrePool, 6);
+        const overlap = candidate.filter(x => initialEtreForms.has(x.fr)).length;
+        if (overlap <= 3) {
+          chosen = candidate;
+          break;
+        }
+        attempts++;
+      }
+      if (chosen.length === 0) {
+        // fallback: neem gewoon 6 unieke (mocht het ooit misgaan)
+        chosen = sampleUnique(etrePool, 6);
+      }
+      quizOrder = shuffle(makeQuizFromItems(chosen));
+      current = 0;
+      showNextButton(true);
+      loadQuestion();
+    }
+
+    function startQuizAvoir() {
+      const chosen = sampleUnique(avoirPool, 6);
+      quizOrder = shuffle(makeQuizFromItems(chosen));
+      current = 0;
+      showNextButton(true);
+      loadQuestion();
+    }
+
+    function startQuizMix() {
+      const combined = [...etrePool, ...avoirPool];
+      const chosen = sampleUnique(combined, 8);
+      quizOrder = shuffle(makeQuizFromItems(chosen));
+      current = 0;
+      showNextButton(true);
+      loadQuestion();
+    }
+
+    // --- UI ---
+    function showNextButton(show) {
+      const btn = document.getElementById('nextBtn');
+      btn.style.display = show ? 'inline-block' : 'none';
+    }
+
+    function loadQuestion() {
+      const q = quizOrder[current];
+      document.getElementById('question').textContent = `Wat betekent: ${q.fr}?`;
+
+      const optionsForm = document.getElementById('options');
+      optionsForm.innerHTML = '';
+      document.getElementById('feedback').textContent = '';
+
+      q.options.forEach(opt => {
+        const label = document.createElement('label');
+        label.innerHTML = `<input type="radio" name="option" value="${opt}"> ${opt}`;
+        optionsForm.appendChild(label);
+      });
+    }
+
+    function showMenu() {
+      showNextButton(false);
+      document.getElementById('feedback').textContent = '';
+      document.getElementById('question').textContent = 'Klaar! Kies wat je nu wilt oefenen:';
+
+      const optionsForm = document.getElementById('options');
+      optionsForm.innerHTML = '';
+
+      const makeBtn = (text, onClick) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = text;
+        b.style.marginRight = '10px';
+        b.style.marginTop = '8px';
+        b.onclick = onClick;
+        return b;
+      };
+
+      optionsForm.appendChild(makeBtn('1) Opnieuw être oefenen', startQuizEtreAgain));
+      optionsForm.appendChild(makeBtn('2) Oefen avoir', startQuizAvoir));
+      optionsForm.appendChild(makeBtn('3) Être & avoir tegelijk', startQuizMix));
+    }
+
+    function nextQuestion() {
+      const selected = document.querySelector('input[name="option"]:checked');
+      if (!selected) return;
+
+      const feedback = document.getElementById('feedback');
+      if (selected.value === quizOrder[current].correct) {
+        feedback.textContent = 'Goed!';
+        feedback.style.color = 'green';
+      } else {
+        feedback.textContent = `Niet helemaal. Het juiste antwoord is: ${quizOrder[current].correct}`;
+        feedback.style.color = 'red';
+      }
+
+      current++;
+      if (current < quizOrder.length) {
+        setTimeout(loadQuestion, 900);
+      } else {
+        setTimeout(showMenu, 900);
+      }
+    }
+
+    // Start: eerste ê tre-quiz (zoals eerder)
+    startQuizEtreFirst();
+  </script>
+</body>
+</html>
