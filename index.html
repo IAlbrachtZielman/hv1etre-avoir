@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
-  <title>Quiz – Être (brugklas)</title>
+  <title>Quiz â€“ ÃŠtre (brugklas)</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -62,7 +62,7 @@
 </head>
 <body>
   <div class="quiz">
-    <h1>Quiz – het werkwoord <em>être</em></h1>
+    <h1>Quiz â€“ het werkwoord <em>Ãªtre</em></h1>
     <div id="question" class="question"></div>
     <form id="options" class="options"></form>
     <button id="nextBtn" onclick="nextQuestion()">Volgende</button>
@@ -71,7 +71,7 @@
 
   <script>
     // --- Vervoegingen & vertalingen (alleen uit de meegeleverde bronnen) ---
-    // Être (met overrides zoals gevraagd)
+    // ÃŠtre (met overrides zoals gevraagd)
     const etrePool = [
       { fr: "je suis", nl: "ik ben" },
       { fr: "tu es", nl: "jij bent" },
@@ -79,16 +79,16 @@
       { fr: "elle est", nl: "zij is" },               // override
       { fr: "on est", nl: "men is / wij zijn" },      // override
       { fr: "nous sommes", nl: "wij zijn" },
-      { fr: "vous êtes", nl: "jullie zijn / u bent" },
+      { fr: "vous Ãªtes", nl: "jullie zijn / u bent" },
       { fr: "ils sont", nl: "zij zijn (m)" },         // override
       { fr: "elles sont", nl: "zij zijn (v)" },       // override
-      { fr: "c’est", nl: "het is" },
+      { fr: "câ€™est", nl: "het is" },
       { fr: "ce sont", nl: "het zijn" }
     ];
 
     // Avoir
     const avoirPool = [
-      { fr: "j’ai", nl: "ik heb" },
+      { fr: "jâ€™ai", nl: "ik heb" },
       { fr: "tu as", nl: "jij hebt" },
       { fr: "il a", nl: "hij heeft" },                // override
       { fr: "elle a", nl: "zij heeft" },              // override
@@ -147,7 +147,7 @@
     }
 
     function startQuizEtreAgain() {
-      // 6 nieuwe vragen over être; overlap met de eerste set max 3 vormen
+      // 6 nieuwe vragen over Ãªtre; overlap met de eerste set max 3 vormen
       let chosen = [];
       let attempts = 0;
       while (attempts < 200) {
@@ -225,9 +225,9 @@
         return b;
       };
 
-      optionsForm.appendChild(makeBtn('1) Opnieuw être oefenen', startQuizEtreAgain));
+      optionsForm.appendChild(makeBtn('1) Opnieuw Ãªtre oefenen', startQuizEtreAgain));
       optionsForm.appendChild(makeBtn('2) Oefen avoir', startQuizAvoir));
-      optionsForm.appendChild(makeBtn('3) Être & avoir tegelijk', startQuizMix));
+      optionsForm.appendChild(makeBtn('3) ÃŠtre & avoir tegelijk', startQuizMix));
     }
 
     function nextQuestion() {
@@ -251,8 +251,9 @@
       }
     }
 
-    // Start: eerste ê tre-quiz (zoals eerder)
+    // Start: eerste Ãª tre-quiz (zoals eerder)
     startQuizEtreFirst();
   </script>
 </body>
 </html>
+
